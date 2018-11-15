@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_19';
+const CACHE_VER = 'VER_43';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
@@ -13,10 +13,10 @@ const appAssets = [
     '/restaurant.html',
     '/src/css/styles.css',
     '/src/css/my-styles.css',
+    '/src/css/css-reset.css',
     '/src/js/dbhelper.js',
     '/src/js/idb.min.js',
     '/src/js/main.min.js',
-    '/src/js/main.js',
     '/src/js/restaurant_info.js',
     '/src/img/dest/webp/1-md_1x.webp',
     '/src/img/dest/webp/2-md_1x.webp',
@@ -40,15 +40,13 @@ self.addEventListener('install', e => {
             .then(cache => {
                 console.log('[SW INSTALL] Precaching Static');
                 return cache.addAll(appAssets);
-                // cache.add('/');
-                // cache.add('/index.html');
-                // cache.add('/src/img/dest/webp/10-md_1x.webp')
             })
     );
 });
 
 // activate sw
 self.addEventListener('activate', e => {
+    // debugger;
     e.waitUntil(
         caches.keys()
             .then( keys => {
@@ -94,18 +92,16 @@ self.addEventListener('fetch', evt => {
             const cachedResponse = await caches.match(evt.request);
             if (cachedResponse) {
                 // respond with the value in the cache
-                // console.log('[CACHE MATCH]', cachedResponse);
-                cachedResponse.headers.set('Cache-control', 'max-age=3600');
+                // cachedResponse.headers.set('Cache-control', 'max-age=3600');
                 return cachedResponse;
             }
             // response not in cache, then respond with network
-            const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}
-            // netResponse.headers.set('Cache-control', 'max-age=3600');
+            const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
 
             // add fetched response to cache
             // const request = evt.request;
             // const url = new URL(request.url);
-        
+            
             if (evt.request.url.match(location.origin)) {
                 let cache = await caches.open(CACHE_STATIC);
                 cache.put(evt.request.url, netResponse.clone());

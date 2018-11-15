@@ -51,13 +51,16 @@ form.addEventListener('submit', function(event) {
 
   const name = document.querySelector('#reviewer');
   const rating = document.querySelector('#rating');
-  const comment = document.querySelector('#comments');
+  const comments = document.querySelector('#comments');
+  const requiredMessage = document.querySelector('#required-message');
+
+  let showRequiredMessage = false;
 
   const review = {
     id: new Date().toISOString(),
     name: name.value,
     rating: rating.value,
-    comments: comment.value,
+    comments: comments.value,
     restaurant_id: self.restaurant.id,
   };
   // alert(review);
@@ -71,17 +74,23 @@ form.addEventListener('submit', function(event) {
 
     navigator.serviceWorker.ready
     .then(sw => {
-      // console.log('[RESTAURANT ID]', self.restaurant.id);
-      // console.log('[SYNC Manager Reg...]', review);
+
+      if (!(name.value && rating.value && comment.value)) {
+        console.log('[INVALID ENTRIES]');
+        showRequiredMessage = true;
+        requiredMessage.setAttribute('hidden', 'false');
+        return;
+      }
+
       DBHelper.saveReviewToSyncStore(review)
       .then(() => {
         return sw.sync.register('sync-reviews')
       .then(() => {
-        // console.log('[INDEXEDDB] posts saved successfully!');
         // clear the form data
+        requiredMessage.setAttribute('hidden', 'true');
         name.value = '';
         rating.value = '';
-        comment.value = '';
+        comments.value = '';
       })
       .catch(err => console.log('[INDEXEDDB] saving posts failed!', err))
       });
@@ -89,7 +98,7 @@ form.addEventListener('submit', function(event) {
   } else {
     //sendData(); // for older browsers
     console.log('old browser');
-    DBHelper.postReview(review);
+    DBHelper.postReview(review); // not tested
   }
 });
 /**
@@ -159,12 +168,6 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.className = 'restaurant-img';
   image.alt = `${restaurant.name} image`;
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  // const images = DBHelper.imageUrlForRestaurant(restaurant);
-  // image.srcset = `${images[0]} 480w, ${images[1]} 640w, ${images[2]} 960w`;
-  // image.sizes=`"(max-width: 400px) 100vw, 
-  //           (max-width: 960px) 75vw, 
-  //           640px"`;
-  // image.src = `${images[0]} alt="${restaurant.name} image"`;
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -175,8 +178,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }
   // fill reviews
   DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
-  // const reviews = DBHelper.fetchRestaurantReviews(restaurant.id);
-  // fillReviewsHTML(reviews);
+  // fillReviewsHTML();
 }
 
 /**
@@ -259,10 +261,6 @@ createReviewHTML = (review) => {
 
   return li;
 }
-
-/**
- * Create the review form and add it to the page
- */
 
 /**
  * Add restaurant name to the breadcrumb navigation menu

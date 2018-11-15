@@ -8,7 +8,10 @@
 <link rel='preconnect' href='https://fonts.gstatic.com'>
 <link rel='preconnect' href='https://maps.googleapis.com'>
 <link rel='preconnect' href='https://maps.gstatic.com'>
+
+<link rel="stylesheet" href="src/css/css-reset.css">
 <link rel='preload' as='style' rel='stylesheet' href='src/css/restaurant.css' type=text/css onload="this.rel='stylesheet'">
+
 <title>Restaurant Info</title>
 
 <script defer type='text/javascript' src='src/js/idb.min.js'></script>
@@ -17,6 +20,7 @@
 <!-- <script defer type=text/javascript src='src/js/restaurant_info.min.js'></script> -->
 <script defer type='text/javascript' src='src/js/restaurant_info.js'></script>
 <style>
+   
     #review-form {
         display: flex;
         flex-direction: column;
@@ -81,21 +85,21 @@
 <ul aria-roledescription="restaurant reviews list" id='reviews-list' tabindex='8'></ul>
 <div>
     <h4>Add Your Own Review</h4>
-    <!-- <div id="reviews-container">
-        <ul id="reviews-list"></ul>
-    </div> -->
+    <div aria-hidden='true' id="required-message" hidden="true">
+        <p>Please fill in required fields</p>
+    </div>
     <form id="review-form" aria-roledescription="add review form">
         <div class='review-input-group'>
             <label class='review-label' for="reviewer" aria-labelledby="reviewer">Your Name</label>
-            <input aria-required="true" required name="reviewer_name" id="reviewer" type="text" placeholder="Type reviewer name">
+            <input aria-required="true" name="reviewer_name" id="reviewer" type="text" placeholder="Type reviewer name - Required">
         </div>
         <div class='review-input-group'>
             <label class='review-label' for="rating" aria-labelledby="rating">Your Rating</label>
-            <input aria-required="true" required name="rating" id="rating" type="number" placeholder="Enter rating (number)">
+            <input aria-required="true" name="rating" id="rating" type="number" placeholder="Enter rating (number) - Required">
         </div>
         <label class='review-label' for="comments" aria-labelledby="comments">Your Comments</label>
         <div class='review-input-group'>
-            <textarea aria-required="true" required name="comments" id="comments" cols="30" rows="10" placeholder="Enter comments here"></textarea>
+            <textarea aria-required="true" name="comments" id="comments" cols="30" rows="10" placeholder="Enter comments here - Required"></textarea>
         </div>
         <div class="submit">
             <button type="submit" aria-roledescription="submit button"><span>Submit Review</span></button>
