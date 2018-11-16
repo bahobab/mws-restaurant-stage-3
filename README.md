@@ -1,117 +1,35 @@
-# Mobile Web Specialist Certification Course
----
-#### _Three Stage Course Material Project - Restaurant Reviews_
+Project Overview
+For the Restaurant Reviews projects, you will incrementally convert a static webpage to a mobile-ready web application. In Stage Three, you will take the connected application you built in Stage One and Stage Two and add additional functionality. You will add a form to allow users to create their own reviews. If the app is offline, your form will defer updating to the remote database until a connection is established. Finally, you’ll work to optimize your site to meet even stricter performance benchmarks than the previous project, and test again using Lighthouse.
 
-## Project Overview: Stage 1
+Specification
+You will be provided code for an updated Node development server and a README for getting the server up and running locally on your computer. The README will also contain the API you will need to make JSON requests to the server. Once you have the server up, you will begin the work of improving your Stage Two project code.
 
-For the **Restaurant Reviews** projects, you will incrementally convert a static webpage to a mobile-ready web application. In **Stage One**, you will take a static design that lacks accessibility and convert the design to be responsive on different sized displays and accessible for screen reader use. You will also add a service worker to begin the process of creating a seamless offline experience for your users.
+This server is different than the server from stage 2, and has added capabilities. Make sure you are using the Stage Three server as you develop your project. Connecting to this server is the same as with Stage Two, however.
 
-### Specification
+You can find the documentation for the new server in the README file for the server.
 
-You have been provided the code for a restaurant reviews website. The code has a lot of issues. It’s barely usable on a desktop browser, much less a mobile device. It also doesn’t include any standard accessibility features, and it doesn’t work offline at all. Your job is to update the code to resolve these issues while still maintaining the included functionality. 
+Now that you’ve connected your application to an external database, it’s time to begin adding new features to your app.
 
-### What do I do from here?
+Requirements
+Add a form to allow users to create their own reviews: In previous versions of the application, users could only read reviews from the database. You will need to add a form that adds new reviews to the database. The form should include the user’s name, the restaurant id, the user’s rating, and whatever comments they have. Submitting the form should update the server when the user is online.
 
-1. In this folder, start up a simple HTTP server to serve up the site files on your local computer. Python has some simple tools to do this, and you don't even need to know Python. For most people, it's already installed on your computer. 
+Add functionality to defer updates until the user is connected: If the user is not online, the app should notify the user that they are not connected, and save the users' data to submit automatically when re-connected. In this case, the review should be deferred and sent to the server when connection is re-established (but the review should still be visible locally even before it gets to the server.)
 
-In a terminal, check the version of Python you have: `python -V`. If you have Python 2.x, spin up the server with `python -m SimpleHTTPServer 8000` (or some other port, if port 8000 is already in use.) For Python 3.x, you can use `python3 -m http.server 8000`. If you don't have Python installed, navigate to Python's [website](https://www.python.org/) to download and install the software.
+Meet the new performance requirements: In addition to adding new features, the performance targets you met in Stage Two have tightened. Using Lighthouse, you’ll need to measure your site performance against the new targets.
 
-2. With your server running, visit the site: `http://localhost:8000`, and look around for a bit to see what the current experience looks like.
-3. Explore the provided code, and make start making a plan to implement the required features in three areas: responsive design, accessibility and offline use.
-4. Write code to implement the updates to get this site on its way to being a mobile-ready website.
+Progressive Web App score should be at 90 or better.
+Performance score should be at 90 or better.
+Accessibility score should be at 90 or better.
 
-### Note about ES6
+How to run this project:
 
-Most of the code in this project has been written to the ES6 JavaScript specification for compatibility with modern web browsers and future proofing JavaScript code. As much as possible, try to maintain use of ES6 in any additional JavaScript you write. 
+1 - clone or dowload the project to your local machine
+2 - from the project directory start the local server by running simpleServer:
+  $~ python3 -m http.server 8888
+(change the port number to suit your local environment)
+3 - fire up the backend server by following the instructions here:
+https://github.com/udacity/mws-restaurant-stage-3
 
- <!-- Above the fold loading -->
-  <!-- <script>
-    const loadStyles = src => {
-      if (document.createStylesheet) {
-        document.createStylesheet(src);
-      } else {
-        const stylesheet = document.createElement('link');
-        stylesheet.href = src;
-        stylesheet.type = 'text/css';
-        stylesheet.rel = 'stylesheet';
-        document.getElementsByTagName('head')[0]
-                .appendChild(stylesheet);
-      }
-    }
-    window.onload = function() {
-      loadStyles('css/styles.min.css');
-      // loadStyles('css/my-styles.css');
-      }
-  </script> -->
-  <!-- <script src="js/index.js"></script> -->
+4 - open http://localhost:8888
 
-<!-- <script async defer> -->
-      <!-- // https://medium.freecodecamp.org/an-intro-to-responsive-image-optimization-with-html5-and-intersection-observer-2a4fbe1473c1
-      // document.addEventListener('DOMContentLoaded', () => {
-    // window.onload = () => {
-    //     // (() => {
-    //     console.log('>>> begin ...');
-    //     let lazyImages = [].slice.call(
-    //       document.querySelectorAll('img.lazy')
-    //     );
-    //     const docBody = document.querySelector('body');
-    //     console.log(docBody.innerHTML);
-    //     if ( 'IntersectionObserver' in window ) {
-    //       console.log('>>> Intersection check ...');
-  
-    //       let lazyImageObserver = new IntersectionObserver((entries, observer) => {
-    //         entries.forEach(entry => {
-    //       console.log('>>> begin iteration...');
-  
-    //           if ( entry.isIntersecting ) {
-    //             console.log('>>> intersecting ...');
-  
-    //             let lazyImage = entry.target;
-    //             lazyImage.src = lazyImage.dataset.src;
-    //             // lazyImage.srcset = lazyImage.dataset.srcset;
-    //             lazyImage.classList.remove('lazy');
-    //             lazyImageObserver.unobserve(lazyImage);
-    //           }
-    //         });
-    //       });
-    //       lazyImages.forEach( lazyImage =>{
-    //       console.log('>>> Lazy load ...');
-  
-    //         lazyImageObserver.observe(lazyImage);
-    //       });
-    //     } else {
-    //       // Other method for these browsers
-    //     }
-    //   // })();
-    //   }; -->
-    <!-- // </script> -->
-
-#### measure performance time #############
-  #<script>
-  #var start = performance.now();
-  #</script>
-  #<script src="myscript.js"></script>
-  #<script>
-  #var end = performance.now();
-  #console.log('took ' + (end - start) + 'ms');
-  #</script>
-
-  <!-- (() => { -->
-  window.onload(() => {
-    'use strict';
-    // Page is loaded
-    const objects = document.getElementsByClassName('lazy');
-    Array.from(objects).map((item) => {
-      // Start loading image
-      const img = new Image();
-      img.src = item.dataset.src;
-      // Once image is loaded replace the src of the HTML element
-      img.onload = () => {
-        item.classList.remove('lazy');
-        return item.nodeName === 'IMG' ? 
-          item.src = item.dataset.src :        
-          item.style.backgroundImage = `url(${item.dataset.src})`;
-      };
-    });
-  });
-<!-- })(); -->
+You should be able to check out restaurants, leave comments, even when offline
