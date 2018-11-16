@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_52';
+const CACHE_VER = 'VER_63';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
