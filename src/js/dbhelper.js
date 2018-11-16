@@ -78,8 +78,6 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    // const port = 8888 // Change this to your server port
-    // return `http://localhost:${port}/data/restaurants.json`;
     return {
       get_restaurants:`http://localhost:1337/restaurants`,
       get_reviews: `http://localhost:1337/reviews`,
@@ -100,7 +98,9 @@ class DBHelper {
     return syncReviews;
   }
 
-  
+  /**
+   * Post reviews used by older browsers: not tested!!!
+   */
   static async postReview(review) {
     const response = await postData(review)
     const postResults = await response.json();
@@ -111,24 +111,24 @@ class DBHelper {
     }
   }
 
+  /**
+   * Delete a review from the IndexedDB.
+   */
   static async deleteReviewFromSyncStore(item) {
     const deleteResult = await deleteDataFromIndexedDB(SYNC_REVIEW_STORE, item, 'readwrite');
-    // console.log('[AFTER SYNCING.. ] delete result: ', deleteResult);
     return deleteResult;
   }
 
+  /**
+   * Sync review to the backend server. Called from SW sync event.
+   */
   static async syncReviewToDatabaseServer() {
     const reviews = await readFromIndexedDB(SYNC_REVIEW_STORE, 'readonly');
     return Promise.all(reviews.map(async review => {
-      // console.log('[SYNCING.. ] Posting Reviews to Backend...', review)
       const { id, ...rest} = review;
-      // return postData(rest)
-      // .then(response => {
       const response = await postData(rest);
-        // console.log('[RESPONSE After Post]', response);
         if (response.ok) {
           // delete from IndexedDb
-          // console.log('[SYNCING SUCESS.. ] deleting from indexedDB...', review)
           return DBHelper.deleteReviewFromSyncStore(review);
         } else {
           throw error('ERROR POSTING/SYNCING Review')

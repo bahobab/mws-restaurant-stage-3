@@ -59,6 +59,10 @@
         font-weight: 600;
     }
 
+    #required-message {
+        color:crimson;
+    }
+
 </style>
 </head>
 <body class='inside'>
@@ -85,9 +89,7 @@
 <ul aria-roledescription="restaurant reviews list" id='reviews-list' tabindex='8'></ul>
 <div>
     <h4>Add Your Own Review</h4>
-    <div aria-hidden='true' id="required-message" hidden="true">
-        <p>Please fill in required fields</p>
-    </div>
+    <p aria-hidden='true' id="required-message">Please fill in required fields</p>
     <form id="review-form" aria-roledescription="add review form">
         <div class='review-input-group'>
             <label class='review-label' for="reviewer" aria-labelledby="reviewer">Your Name</label>

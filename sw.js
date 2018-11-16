@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_43';
+const CACHE_VER = 'VER_52';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
@@ -11,6 +11,7 @@ const appAssets = [
     '/',
     '/index.html',
     '/restaurant.html',
+    '/offline.html',
     '/src/css/styles.css',
     '/src/css/my-styles.css',
     '/src/css/css-reset.css',
@@ -18,6 +19,7 @@ const appAssets = [
     '/src/js/idb.min.js',
     '/src/js/main.min.js',
     '/src/js/restaurant_info.js',
+    '/src/img/offline.jpg',
     '/src/img/dest/webp/1-md_1x.webp',
     '/src/img/dest/webp/2-md_1x.webp',
     '/src/img/dest/webp/3-md_1x.webp',
@@ -116,10 +118,8 @@ self.addEventListener('fetch', evt => {
         } catch (error) {
             // return falback page
             console.log(`ERROR: ${error}`);
-            // const cache = await caches.open(CACHE_STATIC);
-            // return cache.match('no_cache.html);
-            throw error;
-            
+            const cache = await caches.open(CACHE_STATIC)
+            return cache.match('/offline.html');
         }
     };
 

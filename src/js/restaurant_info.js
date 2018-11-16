@@ -2,19 +2,6 @@
  * PWA service worker.
  */
 
-// const DB_NAME = 'restaurantReviews';
-// const DB_VER = 1;
-// const RESTAURANT_STORE = 'Restaurants';
-// const SYNC_REVIEW_STORE = 'SyncReview';
-// var IDBPromise;
-
-// var IDBPromise = idb.open(DB_NAME, DB_VER, function(upgradeDb) {
-//   if(!upgradeDb.objectStoreNames.contains(SYNC_REVIEW_STORE)) {
-//     console.log('%%%% Creating store...', SYNC_REVIEW_STORE);
-//     const restaurantStore = upgradeDb.createObjectStore(SYNC_REVIEW_STORE, {keyPath: 'id'});
-//   }
-// });
-
 function postReview(review) {
 fetch(URL, {
   method: 'POST',
@@ -44,6 +31,10 @@ if ('serviceWorker' in navigator) {
 }
 
 // form data
+
+const requiredMessage = document.querySelector('#required-message');
+requiredMessage.setAttribute('style', 'visibility: hidden');
+
 const form = document.querySelector('#review-form');
 
 form.addEventListener('submit', function(event) {
@@ -52,9 +43,6 @@ form.addEventListener('submit', function(event) {
   const name = document.querySelector('#reviewer');
   const rating = document.querySelector('#rating');
   const comments = document.querySelector('#comments');
-  const requiredMessage = document.querySelector('#required-message');
-
-  let showRequiredMessage = false;
 
   const review = {
     id: new Date().toISOString(),
@@ -63,8 +51,6 @@ form.addEventListener('submit', function(event) {
     comments: comments.value,
     restaurant_id: self.restaurant.id,
   };
-  // alert(review);
-  // console.log('[SYNC Manager Reg...]', review);
 
   if ('SyncManager' in window) {
     console.log('[SW Ready...]', navigator.serviceWorker);
@@ -75,10 +61,10 @@ form.addEventListener('submit', function(event) {
     navigator.serviceWorker.ready
     .then(sw => {
 
-      if (!(name.value && rating.value && comment.value)) {
-        console.log('[INVALID ENTRIES]');
+      if (!(name.value && rating.value && comments.value)) {
+        // console.log('[INVALID ENTRIES]');
         showRequiredMessage = true;
-        requiredMessage.setAttribute('hidden', 'false');
+        requiredMessage.setAttribute('style', 'visibility: visible');
         return;
       }
 
@@ -87,7 +73,7 @@ form.addEventListener('submit', function(event) {
         return sw.sync.register('sync-reviews')
       .then(() => {
         // clear the form data
-        requiredMessage.setAttribute('hidden', 'true');
+        requiredMessage.setAttribute('style', 'visibility: hidden');
         name.value = '';
         rating.value = '';
         comments.value = '';
