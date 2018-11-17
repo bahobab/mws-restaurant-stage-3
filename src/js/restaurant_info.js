@@ -68,7 +68,7 @@ form.addEventListener('submit', function(event) {
         return;
       }
 
-      DBHelper.saveReviewToSyncStore(review)
+      DBHelper.saveToSyncStore('review', review)
       .then(() => {
         return sw.sync.register('sync-reviews')
       .then(() => {

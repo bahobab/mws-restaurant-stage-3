@@ -83,7 +83,7 @@ updateRestaurants = () => {
         resetRestaurants(restaurants);
         fillRestaurantsHTML()
         }
-    })
+    });
 }
 
 resetRestaurants = (restaurants) => {
@@ -102,6 +102,46 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
         ul.append(createRestaurantHTML(restaurant))
     });
     addMarkersToMap();
+
+    // handle setting of favorite restaurant
+    // if ('SyncManager' in window) {
+    //     console.log('[SW Ready...]', navigator.serviceWorker);
+    //     navigator.serviceWorker.ready
+    //     .then(sw => {
+            handleFavorite()
+    //         .then(() => {
+    //             return sw.sync.register('sync-favorite')
+
+    //         })
+    //         .then(() => console.log('[SYNC FAVORITE REG] success'))
+    //         .catch(() => console.error('[SYNC FAVORITE REG] failed'));
+    //     });
+    // }
+}
+
+handleFavorite = () => {
+    const restaurantList = document.getElementById('restaurants-list');
+    restaurantList.addEventListener('click', (event) => {
+        const favoriteCheckboxes = document.querySelectorAll(`#restaurants-list li input`);
+        for (let checkbox of favoriteCheckboxes) {
+            if (checkbox.id === event.target.id) {
+                const restaurantId = Number(checkbox
+                                            .attributes
+                                            .restaurantid
+                                            .value
+                                        );
+                return DBHelper.saveToSyncStore(
+                    'favorite',
+                    {
+                        id: new Date().toISOString(),
+                        restaurant_id: restaurantId,
+                        favorite: checkbox.checked,
+                    }
+                );
+            }
+            
+        }
+    });
 }
 
 createRestaurantHTML = (restaurant) => {
@@ -119,25 +159,33 @@ createRestaurantHTML = (restaurant) => {
     const nameFavWrapper = document.createElement('div');
     nameFavWrapper.className = 'name-fav-wrapper';
     nameFavWrapper.id = 'name-Fav-Wrapper';
+
     const name = document.createElement('h3');
     name.innerHTML = restaurant.name;
     nameFavWrapper.append(name);
-    // const favCb = document.createElement('input');
-    // favCb.type = 'checkbox';
-    // favCb.name = 'My Favorite';
-    // favCb.checked = false;
-    const myFav = document.createElement('span');
-    myFav.innerHTML = '<input type="checkbox" cheked="false">My Favorite?'
-    // myFav.append(favCb);
-    nameFavWrapper.append(myFav);
+
+    const favCheckbox = document.createElement('input');
+    favCheckbox.type = 'checkbox';
+    favCheckbox.name = 'My Favorite';
+    favCheckbox.checked = restaurant.is_favorite;
+    favCheckbox.setAttribute('checked', restaurant.is_favorite);
+    favCheckbox.setAttribute('restaurantId', restaurant.id);
+    favCheckbox.id = restaurant.id;
+
+    const myFavSpan = document.createElement('span');
+    myFavSpan.innerHTML = `<em>My Favorite?</em>`
+    myFavSpan.append(favCheckbox);
+    nameFavWrapper.append(myFavSpan);
     li.append(nameFavWrapper);
 
     const neighborhood = document.createElement('p');
     neighborhood.innerHTML = restaurant.neighborhood;
     li.append(neighborhood);
+
     const address = document.createElement('p');
     address.innerHTML = restaurant.address;
     li.append(address);
+
     const more = document.createElement('a');
     more.innerHTML = 'View Details';
     more.href = DBHelper.urlForRestaurant(restaurant);
@@ -145,6 +193,7 @@ createRestaurantHTML = (restaurant) => {
     li.append(more)
     return li
 }
+
 
 addMarkersToMap = (restaurants = self.restaurants) => {
     restaurants.forEach(restaurant => {

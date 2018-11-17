@@ -6,6 +6,7 @@ const DB_NAME = 'restaurantReviews';
 const DB_VER = 1;
 const RESTAURANT_STORE = 'Restaurants';
 const SYNC_REVIEW_STORE = 'SyncReviews';
+const SYNC_FAV_STORE = 'SyncFavorite';
 
 const POST_REVIEW_URL = 'http://localhost:1337/reviews/';
 
@@ -17,6 +18,9 @@ const OpenIDB = idb.open(DB_NAME, DB_VER, function(upgradeDb) {
   }
   if(!upgradeDb.objectStoreNames.contains(SYNC_REVIEW_STORE)) {
     upgradeDb.createObjectStore(SYNC_REVIEW_STORE, {keyPath: 'id'});
+  }
+  if(!upgradeDb.objectStoreNames.contains(SYNC_FAV_STORE)) {
+    upgradeDb.createObjectStore(SYNC_FAV_STORE, {keyPath: 'id'});
   }
 });
 
@@ -49,8 +53,26 @@ function deleteDataFromIndexedDB(storeName, item, mode = 'readwrite') {
   })
 }
 
+function updateData(data) {
+  const url = `${DBHelper.DATABASE_URL.update_favorite}
+                ${data.restaurant_id}/?is_favorite=${data.favorite}`
+  return fetch(url,
+    {
+      mode: 'cors',
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  )
+  .then(response => {
+    return response;
+  }, err => console.error('[PUT FAVORITE: FETCH ERROR]', err))
+}
+
 function postData(data) {
-  // console.log('[POST URL]', DBHelper.DATABASE_URL.post_review);
   return fetch(DBHelper.DATABASE_URL.post_review,
     {
       method: 'POST',
@@ -82,21 +104,38 @@ class DBHelper {
       get_restaurants:`http://localhost:1337/restaurants`,
       get_reviews: `http://localhost:1337/reviews`,
       post_review: 'http://localhost:1337/reviews',
+      update_favorite: 'http://localhost:1337/restaurants/',
     };
   }
 
-  static saveReviewToSyncStore(review) {
+  /**
+   * save favorite to IndexedDB.
+   */
+
+  static saveToSyncStore(type, data) {
     // console.log('### Saving review to synchstore', review);
-    return saveToIndexedDB(SYNC_REVIEW_STORE, review);
+    // updateData(data);
+    type === 'review'
+      ? saveToIndexedDB(SYNC_REVIEW_STORE, data)
+      : saveToIndexedDB(SYNC_FAV_STORE, data)
   }
+
+  /**
+   * save favorite to IndexedDB.
+   */
+
+  // static saveFavoriteToSyncStore(favorite) {
+  //   return saveToIndexedDB(SYNC_REVIEW_STORE, favorite);    
+  // }
 
   /**
    * Read reviews from IndexedDB then post them to database.
    */
-  static async getReviewFromSyncStore(mode = 'readonly') {
-    const syncReviews = await readFromIndexedDB(SYNC_REVIEW_STORE, mode)
-    return syncReviews;
-  }
+
+  // static async getDataFromSyncStore(mode = 'readonly') {
+  //   const syncReviews = await readFromIndexedDB(SYNC_REVIEW_STORE, mode)
+  //   return syncReviews;
+  // }
 
   /**
    * Post reviews used by older browsers: not tested!!!
@@ -111,17 +150,37 @@ class DBHelper {
     }
   }
 
+
   /**
    * Delete a review from the IndexedDB.
-   */
+  */
   static async deleteReviewFromSyncStore(item) {
     const deleteResult = await deleteDataFromIndexedDB(SYNC_REVIEW_STORE, item, 'readwrite');
     return deleteResult;
   }
 
   /**
+   * Sync favorite to the backend server. Called from SW sync event.
+  */
+
+ static async syncFavoriteToDatabaseServer() {
+  const favorites = await readFromIndexedDB(SYNC_FAV_STORE, 'readonly');
+  return Promise.all(favorites.map(async favorite => {
+    const { id, ...rest} = favorite;
+    const response = await updateData(rest);
+    if (response.ok) {
+      // delete from IndexedDb
+      return DBHelper.deleteReviewFromSyncStore(favorites);
+    } else {
+      throw error('ERROR POSTING/SYNCING favorites')
+    }
+  }));
+}
+
+  /**
    * Sync review to the backend server. Called from SW sync event.
-   */
+  */
+
   static async syncReviewToDatabaseServer() {
     const reviews = await readFromIndexedDB(SYNC_REVIEW_STORE, 'readonly');
     return Promise.all(reviews.map(async review => {
@@ -176,6 +235,7 @@ class DBHelper {
   /**
    * Fetch a restaurant by its ID.
    */
+
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -195,6 +255,7 @@ class DBHelper {
   /**
    * Fetch restaurants by a cuisine type with proper error handling.
    */
+
   static fetchRestaurantByCuisine(cuisine, callback) {
     // Fetch all restaurants  with proper error handling
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -211,6 +272,7 @@ class DBHelper {
   /**
    * Fetch restaurants by a neighborhood with proper error handling.
    */
+
   static fetchRestaurantByNeighborhood(neighborhood, callback) {
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -227,6 +289,7 @@ class DBHelper {
   /**
    * Fetch restaurants by a cuisine and a neighborhood with proper error handling.
    */
+
   static fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, callback) {
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -248,6 +311,7 @@ class DBHelper {
   /**
    * Fetch all neighborhoods with proper error handling.
    */
+
   static fetchNeighborhoods(callback) {
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -266,6 +330,7 @@ class DBHelper {
   /**
    * Fetch all cuisines with proper error handling.
    */
+
   static fetchCuisines(callback) {
     // Fetch all restaurants
     DBHelper.fetchRestaurants((error, restaurants) => {
@@ -284,6 +349,7 @@ class DBHelper {
   /**
    * Restaurant page URL.
    */
+
   static urlForRestaurant(restaurant) {
     return (`./restaurant.html?id=${restaurant.id}`);
   }
@@ -291,6 +357,7 @@ class DBHelper {
   /**
    * Restaurant image URL.
    */
+
   static imageUrlForRestaurant(restaurant) {
     // const images = restaurant.photograph.map(resto => `/img/dest/${resto}`);
     // return (images);
@@ -305,6 +372,7 @@ class DBHelper {
   /**
    * Map marker for a restaurant.
    */
+
   static mapMarkerForRestaurant(restaurant, map) {
     const marker = new google.maps.Marker({
       position: restaurant.latlng,

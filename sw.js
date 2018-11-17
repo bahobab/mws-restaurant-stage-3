@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_63';
+const CACHE_VER = 'VER_104';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
@@ -132,7 +132,18 @@ self.addEventListener('sync', event => {
         event.waitUntil(DBHelper.syncReviewToDatabaseServer()
             .then( () => {
                 // self.registration.showNotification('Reviews Successfully Synched to Database Server');
-                console.log('[SYNC BACKEND... Reviews Successfully Synched to Database Server]');
+                console.log('[SYNC TO BACKEND... Reviews Successfully Synched to Database Server]');
+            })
+            .catch(error => {
+                console.log('Error Synching to Database Server', error);
+            })
+        );
+    }
+
+    if (event.tag === 'sync-favorite') {
+        event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
+            .then( () => {
+                console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');
             })
             .catch(error => {
                 console.log('Error Synching to Database Server', error);
