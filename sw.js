@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_104';
+const CACHE_VER = 'VER_127';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
@@ -17,6 +17,7 @@ const appAssets = [
     '/src/css/css-reset.css',
     '/src/js/dbhelper.js',
     '/src/js/idb.min.js',
+    '/src/js/main.js',
     '/src/js/main.min.js',
     '/src/js/restaurant_info.js',
     '/src/img/offline.jpg',
@@ -87,7 +88,9 @@ self.addEventListener('activate', e => {
     // );
 });
 
+const reviewURL = 'http://localhost:1337/reviews/?restaurant_id=';
 self.addEventListener('fetch', evt => {
+    
     const getCustomResponsePromise = async () => {
         try {
             // get form cache first
@@ -141,13 +144,14 @@ self.addEventListener('sync', event => {
     }
 
     if (event.tag === 'sync-favorite') {
-        event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
-            .then( () => {
-                console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');
-            })
-            .catch(error => {
-                console.log('Error Synching to Database Server', error);
-            })
-        );
+        console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');        
+        // event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
+        //     .then( () => {
+        //         console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');
+        //     })
+        //     .catch(error => {
+        //         console.log('Error Synching to Database Server', error);
+        //     })
+        // );
     }
 });

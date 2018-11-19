@@ -29,13 +29,16 @@ function saveToIndexedDB(storeName, data) {
     const transaction = db.transaction(storeName, 'readwrite');
     store = transaction.objectStore(storeName);
     try {
-      Array.isArray(data)
-        ? data.forEach(restaurant => store.put(restaurant))
-        : store.put(data)
+      let storeOperation = null;
+      if (Array.isArray(data)) {
+        data.forEach(restaurant => storeOperation = store.put(restaurant))
+      } else {
+        storeOperation = store.put(data)
+      }
+      return storeOperation;
     } catch (error) {
       console.log(`### Error saving to IndexedDB: ${error}`);
     }
-    return transaction.complete;
   })
 }
 
@@ -101,9 +104,9 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     return {
-      get_restaurants:`http://localhost:1337/restaurants`,
-      get_reviews: `http://localhost:1337/reviews`,
-      post_review: 'http://localhost:1337/reviews',
+      get_restaurants:`http://localhost:1337/restaurants/`,
+      get_reviews: `http://localhost:1337/reviews/`,
+      post_review: 'http://localhost:1337/reviews/',
       update_favorite: 'http://localhost:1337/restaurants/',
     };
   }
@@ -112,12 +115,22 @@ class DBHelper {
    * save favorite to IndexedDB.
    */
 
-  static saveToSyncStore(type, data) {
+  static saveToSyncStore(type, data, callback) {
     // console.log('### Saving review to synchstore', review);
     // updateData(data);
-    type === 'review'
-      ? saveToIndexedDB(SYNC_REVIEW_STORE, data)
-      : saveToIndexedDB(SYNC_FAV_STORE, data)
+    let saveOperation = null;
+    if (type === 'review') {
+      saveOperation = saveToIndexedDB(SYNC_REVIEW_STORE, data)
+    } else {
+      saveOperation =  saveToIndexedDB(SYNC_FAV_STORE, data) 
+    }
+   // in write the current fav to indexedDb too
+    if (saveOperation) {
+      console.log('[SAVE TO SYNC STORE SUCCESS]');
+      saveOperation.onsuccess = callback;
+    } else {
+      console.log('[SAVE TO SYNC STORE FAILED]');
+    }
   }
 
   /**
@@ -198,18 +211,31 @@ class DBHelper {
 
   /**
    * Fetch all reviews for a restaurants.
-   */
+  */
 
-   static async fetchRestaurantReviews(restaurantId, callback) {
-    const response = await fetch(`${DBHelper.DATABASE_URL.get_reviews}/?restaurant_id=${restaurantId}`);
-    //  console.log('[REVIEWS RESPONSE]', response);
-    const json = await response.json();
-    const reviews = json.map(review => {
-      return {...review, date: new Date(review.createdAt).toLocaleDateString()}
-    });
-    //  console.log('[REVIEWS MAP]', reviews);
-    callback(reviews);
-   }
+  // static async getFavorite(callback) {
+  //   const restaurants = await DBHelper.fetchRestaurants(callback);
+  //   // get the current favorite and store it to indexedDb sync store
+  //   const favRestaurant = restaurants.filter(restaurant => restaurant.is_favorite === true);
+  //   console.log('[CURENT FAV RESTO]', favRestaurant);
+
+  //   return callback(restaurants)
+  // }
+
+  /**
+   * Fetch all reviews for a restaurants.
+  */
+
+  static async fetchRestaurantReviews(restaurantId, callback) {
+  const response = await fetch(`${DBHelper.DATABASE_URL.get_reviews}?restaurant_id=${restaurantId}`);
+  //  console.log('[REVIEWS RESPONSE]', response);
+  const json = await response.json();
+  const reviews = json.map(review => {
+    return {...review, date: new Date(review.createdAt).toLocaleDateString()}
+  });
+  //  console.log('[REVIEWS MAP]', reviews);
+  callback(reviews);
+  }
 
   /**
    * Fetch all restaurants.

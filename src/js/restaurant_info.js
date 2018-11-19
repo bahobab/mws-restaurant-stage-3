@@ -52,6 +52,21 @@ form.addEventListener('submit', function(event) {
     restaurant_id: self.restaurant.id,
   };
 
+  function registerSync(sw) {
+    return sw.sync.register('sync-reviews')
+    .then(() => {
+      // clear the form data
+      requiredMessage.setAttribute('style', 'visibility: hidden');
+      name.value = '';
+      rating.value = '';
+      comments.value = '';
+
+      // refresh restaurant UI self.restaurant.id
+      // DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
+    })
+    .catch(err => console.log('[INDEXEDDB] saving posts failed!', err))
+  }
+
   if ('SyncManager' in window) {
     console.log('[SW Ready...]', navigator.serviceWorker);
     // https://github.com/w3c/ServiceWorker/issues/1278
@@ -67,20 +82,9 @@ form.addEventListener('submit', function(event) {
         requiredMessage.setAttribute('style', 'visibility: visible');
         return;
       }
-
-      DBHelper.saveToSyncStore('review', review)
-      .then(() => {
-        return sw.sync.register('sync-reviews')
-      .then(() => {
-        // clear the form data
-        requiredMessage.setAttribute('style', 'visibility: hidden');
-        name.value = '';
-        rating.value = '';
-        comments.value = '';
-      })
-      .catch(err => console.log('[INDEXEDDB] saving posts failed!', err))
-      });
-    });
+      DBHelper.saveToSyncStore('review', review, registerSync(sw))
+       
+    })
   } else {
     //sendData(); // for older browsers
     console.log('old browser');
@@ -163,7 +167,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
+  // DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
   // fillReviewsHTML();
 }
 
