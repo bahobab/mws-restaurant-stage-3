@@ -231,3 +231,7 @@ header {
   justify-content: space-between;
   margin: 7px 0 0 0;
 }
+
+.is-favorite {
+  border: 2px solid green !important;
+}

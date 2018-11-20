@@ -4,7 +4,9 @@
 
 const DB_NAME = 'restaurantReviews';
 const DB_VER = 1;
+
 const RESTAURANT_STORE = 'Restaurants';
+const REVIEW_STORE = 'Reviews';
 const SYNC_REVIEW_STORE = 'SyncReviews';
 const SYNC_FAV_STORE = 'SyncFavorite';
 
@@ -15,6 +17,10 @@ const POST_REVIEW_URL = 'http://localhost:1337/reviews/';
 const OpenIDB = idb.open(DB_NAME, DB_VER, function(upgradeDb) {
   if(!upgradeDb.objectStoreNames.contains(RESTAURANT_STORE)) {
     upgradeDb.createObjectStore(RESTAURANT_STORE, {keyPath: 'id'});
+  }
+  if(!upgradeDb.objectStoreNames.contains(REVIEW_STORE)) {
+    const store = upgradeDb.createObjectStore(REVIEW_STORE, {keyPath: 'id'})
+    const index = store.createIndex('reviews', 'restaurant_id', {unique: false});
   }
   if(!upgradeDb.objectStoreNames.contains(SYNC_REVIEW_STORE)) {
     upgradeDb.createObjectStore(SYNC_REVIEW_STORE, {keyPath: 'id'});
@@ -31,11 +37,12 @@ function saveToIndexedDB(storeName, data) {
     try {
       let storeOperation = null;
       if (Array.isArray(data)) {
-        data.forEach(restaurant => storeOperation = store.put(restaurant))
+        data.forEach(restaurant => storeOperation = store.put(restaurant));
+        return storeOperation;
       } else {
         storeOperation = store.put(data)
+        return storeOperation;
       }
-      return storeOperation;
     } catch (error) {
       console.log(`### Error saving to IndexedDB: ${error}`);
     }
@@ -48,6 +55,27 @@ function readFromIndexedDB(storeName, mode = 'readonly') {
                               .getAll());
 }
 
+function getReviewsFromIndexedDB(storeName, restaurant_id, review, callback) {
+  return OpenIDB.then(db => {
+                      const index = db.transaction(storeName, 'readonly')
+                                      .objectStore(storeName)
+                                      .index('reviews');
+
+                      const reviewIndex = index.getAll(restaurant_id);
+                      console.log('[REQUEST]', reviewIndex);
+                      reviewIndex.request.onsuccess = (e) => {
+                        console.log('[INDEX SUCCESS]', reviewIndex.request.result);
+                        saveToIndexedDB(SYNC_REVIEW_STORE, review);
+                        console.log('[SYNSTORE SUCCESS]');
+                        const reviews = reviewIndex.request.result;
+                        reviews.push(review);
+                        callback(reviews);                      
+                        // return reviewIndex.request.result;
+                      }
+    })
+    .catch(err => console.log('[OPEN INDEXEDDB ERROR]', err));
+}
+
 function deleteDataFromIndexedDB(storeName, item, mode = 'readwrite') {
   return OpenIDB.then(db => {
     const transaction = db.transaction(storeName, mode);
@@ -57,8 +85,10 @@ function deleteDataFromIndexedDB(storeName, item, mode = 'readwrite') {
 }
 
 function updateData(data) {
+  // console.log('[SYNCd FAV POST DATA]', data);
   const url = `${DBHelper.DATABASE_URL.update_favorite}
-                ${data.restaurant_id}/?is_favorite=${data.favorite}`
+                ${data.id}/?is_favorite=${data.is_favorite}`;
+                // console.log('[SYNCd FAV POSTed URL]', url);
   return fetch(url,
     {
       mode: 'cors',
@@ -115,21 +145,37 @@ class DBHelper {
    * save favorite to IndexedDB.
    */
 
-  static saveToSyncStore(type, data, callback) {
-    // console.log('### Saving review to synchstore', review);
-    // updateData(data);
+  static async saveToSyncStore(type, data, callback) {
     let saveOperation = null;
     if (type === 'review') {
-      saveOperation = saveToIndexedDB(SYNC_REVIEW_STORE, data)
+      // console.log('[NEW REVIEW]', data);
+      const reviews = await getReviewsFromIndexedDB(REVIEW_STORE, data.restaurant_id, data, callback);
     } else {
-      saveOperation =  saveToIndexedDB(SYNC_FAV_STORE, data) 
-    }
-   // in write the current fav to indexedDb too
-    if (saveOperation) {
-      console.log('[SAVE TO SYNC STORE SUCCESS]');
-      saveOperation.onsuccess = callback;
-    } else {
-      console.log('[SAVE TO SYNC STORE FAILED]');
+      // console.log('[NEW FAV]', data);
+      // 1. get current favorite
+      const allRestaurants = await readFromIndexedDB(RESTAURANT_STORE);
+      // console.log('[ALL RESTO]', allRestaurants);      
+      const currFav = allRestaurants.filter(restaurant => restaurant.is_favorite === 'true');
+      const currentFavoriteResto = currFav[0];
+      const newFav = allRestaurants.filter(restaurant => restaurant.id === data.restaurant_id);
+      const newFavoriteResto = newFav[0];
+      // console.log('[CURRENT FAV]', currentFavoriteResto);
+      // console.log('[NEW FAV]', newFavoriteResto);
+      const currentFavoriteRestoIndex = allRestaurants.indexOf(currentFavoriteResto);
+      const newFavoriteRestoIndex = allRestaurants.indexOf(newFavoriteResto);
+      // 2. set its favorite to false
+      currentFavoriteResto.is_favorite = 'false';
+      newFavoriteResto.is_favorite = 'true';
+      // console.log('[CUR FAV FLIPPED]', currentFavoriteResto);
+      // console.log('[NEW FAV FLIPPED]', newFavoriteResto);
+      allRestaurants[currentFavoriteRestoIndex] = currentFavoriteResto;
+      allRestaurants[newFavoriteRestoIndex] = newFavoriteResto;
+      
+      saveToIndexedDB(RESTAURANT_STORE, allRestaurants);
+      // 5. update sync_fav_store with array
+      saveToIndexedDB(SYNC_FAV_STORE, [currentFavoriteResto, newFavoriteResto]);
+      callback(allRestaurants)
+      // console.log('[ALL DONE!!!!]');      
     }
   }
 
@@ -163,7 +209,6 @@ class DBHelper {
     }
   }
 
-
   /**
    * Delete a review from the IndexedDB.
   */
@@ -176,14 +221,17 @@ class DBHelper {
    * Sync favorite to the backend server. Called from SW sync event.
   */
 
- static async syncFavoriteToDatabaseServer() {
-  const favorites = await readFromIndexedDB(SYNC_FAV_STORE, 'readonly');
-  return Promise.all(favorites.map(async favorite => {
-    const { id, ...rest} = favorite;
-    const response = await updateData(rest);
+static async syncFavoriteToDatabaseServer() {
+  const restaurants = await readFromIndexedDB(RESTAURANT_STORE, 'readonly');
+  // console.log('[SYNCd FAV REST TO POST]', restaurants);
+  return Promise.all(restaurants.map(async restaurant => {
+    // const { id, ...rest} = favorite;
+    const response = await updateData(restaurant);
     if (response.ok) {
+      // console.log('[SYNCd FAV POSTed]', restaurant);
       // delete from IndexedDb
-      return DBHelper.deleteReviewFromSyncStore(favorites);
+      // return DBHelper.deleteReviewFromSyncStore(favorites);
+      return;
     } else {
       throw error('ERROR POSTING/SYNCING favorites')
     }
@@ -227,14 +275,26 @@ class DBHelper {
   */
 
   static async fetchRestaurantReviews(restaurantId, callback) {
-  const response = await fetch(`${DBHelper.DATABASE_URL.get_reviews}?restaurant_id=${restaurantId}`);
-  //  console.log('[REVIEWS RESPONSE]', response);
-  const json = await response.json();
-  const reviews = json.map(review => {
-    return {...review, date: new Date(review.createdAt).toLocaleDateString()}
-  });
-  //  console.log('[REVIEWS MAP]', reviews);
-  callback(reviews);
+    try {
+      const response = await fetch(`${DBHelper.DATABASE_URL.get_reviews}?restaurant_id=${restaurantId}`);
+      //  console.log('[REVIEWS RESPONSE]', response);
+      const json = await response.json();
+      const reviews = json.map(review => {
+        return {
+          ...review,
+          date: new Date(review.createdAt).toLocaleDateString(),
+        }
+      });
+      // write to review indexedDB store
+      const restaurant_id = restaurantId;
+      saveToIndexedDB(REVIEW_STORE, reviews);
+      // console.log('[REVIEWS MAP]', reviews);
+      callback(reviews);
+    } catch (err) {
+      console.log('[IN FETCH REVIEWS]', err)
+      const reviews = await readFromIndexedDBByKey(REVIEW_STORE, restaurantId);
+      callback(reviews);
+    }
   }
 
   /**

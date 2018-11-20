@@ -4,6 +4,9 @@ if (navigator.serviceWorker) {
     navigator.serviceWorker.register('sw.js').catch(console.error)
 }
 
+// current favorite restaurantId
+let currentFavId;
+
 let restaurants, neighborhoods, cuisines
 var map
 var markers = []
@@ -100,7 +103,6 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => { // callback
     const ul = document.getElementById('restaurants-list');
     ul.role = 'list';
     restaurants.forEach(restaurant => {
-        console.log
         ul.append(createRestaurantHTML(restaurant))
         // ul.append(DBHelper.fetchRestaurantById(restaurant.id, createRestaurantHTML));
     });
@@ -113,13 +115,13 @@ handleFavorite = () => {
     const restaurantList = document.getElementById('restaurants-list');
     restaurantList.addEventListener('click', (event) => {
 
-        function registerSync(sw) {
+        function registerSync(sw, restaurants) {
             return sw.sync.register('sync-favorite')
             .then(() => {
+                // fillRestaurantsHTML(restaurants);
                 console.log('[SYNC REG FAVORITE] success');
-                // updateRestaurants();
             })
-            .catch(() => console.error('[SYNC FAVORITE REG] failed'));
+            .catch((err) => console.log('[SYNC FAVORITE REG] failed', err));
         }
 
         // handle setting of favorite restaurant
@@ -128,20 +130,27 @@ handleFavorite = () => {
             navigator.serviceWorker.ready
             .then(sw => {
                 const favoriteCheckboxes = document.querySelectorAll(`#restaurants-list li input`);
+                let favLi = document.getElementById(`resto-${currentFavId}`);
+                favLi.classList.remove('is-favorite');
+
                 for (let checkbox of favoriteCheckboxes) {
                     if (checkbox.id === event.target.id) {
-                        const restaurantId = Number(checkbox
-                                                    .attributes
-                                                    .restaurantid
-                                                    .value
-                                                );
+                        restaurantId = Number(checkbox
+                                                .attributes
+                                                .restaurantid
+                                                .value
+                                            );
+                        favLi = document.getElementById(`resto-${restaurantId}`);
+                        favLi.classList.add('is-favorite');
+                        currentFavId = restaurantId; // global
                         return DBHelper.saveToSyncStore(
                             'favorite',
                             {
                                 id: new Date().toISOString(),
                                 restaurant_id: restaurantId,
                                 favorite: checkbox.checked,
-                            }, registerSync(sw)
+                            },
+                            restaurants => registerSync(sw, restaurants)
                         );
                     }
                 }
@@ -153,9 +162,11 @@ handleFavorite = () => {
 }
 
 createRestaurantHTML = (restaurant) => {
+    // https://w3c.github.io/html-reference/input.radio.html setting radio button properties
     const li = document.createElement('li');
     li.role = "listitem";
     li.role = "tab";
+    li.id = `resto-${restaurant.id}`;
     const image = document.createElement('img');
     image.alt = `${restaurant.name} image`;
 
@@ -175,14 +186,17 @@ createRestaurantHTML = (restaurant) => {
     const favCheckbox = document.createElement('input');
     favCheckbox.type = 'radio';
     favCheckbox.name = 'my-favorite';
-    // favCheckbox.checked = restaurant.is_favorite;
-    // favCheckbox.setAttribute('checked', restaurant.is_favorite);
-    favCheckbox.checked = restaurant.is_favorite === 'true'
-                        ? 'checked'
-                        : ''
-    favCheckbox.value = restaurant.is_favorite === 'true'
-                        ? 'on'
-                        : 'off'
+
+    if (restaurant.is_favorite === 'true') {
+        favCheckbox.checked = 'checked';
+        favCheckbox.attributes.value = 'on';
+        li.classList.toggle('is-favorite');
+        currentFavId = restaurant.id; // global
+    } else {
+        favCheckbox.checked = '';
+        favCheckbox.attributes.value = 'off';
+    }
+    
     favCheckbox.setAttribute('restaurantId', restaurant.id);
     favCheckbox.id = restaurant.id;
 

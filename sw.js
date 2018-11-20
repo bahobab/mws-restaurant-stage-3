@@ -1,5 +1,5 @@
 // set sw version
-const CACHE_VER = 'VER_127';
+const CACHE_VER = 'VER_35';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
 
@@ -88,34 +88,44 @@ self.addEventListener('activate', e => {
     // );
 });
 
-const reviewURL = 'http://localhost:1337/reviews/?restaurant_id=';
 self.addEventListener('fetch', evt => {
-    
+    // strategy: network, then cache
     const getCustomResponsePromise = async () => {
-        try {
-            // get form cache first
-            const cachedResponse = await caches.match(evt.request);
-            if (cachedResponse) {
-                // respond with the value in the cache
-                // cachedResponse.headers.set('Cache-control', 'max-age=3600');
-                return cachedResponse;
-            }
-            // response not in cache, then respond with network
-            const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
+        // const reviewURL = 'http://localhost:1337/reviews/?restaurant_id=';
+        const reviewURL = 'http://localhost:1337/';
 
-            // add fetched response to cache
-            // const request = evt.request;
-            // const url = new URL(request.url);
-            
-            if (evt.request.url.match(location.origin)) {
-                let cache = await caches.open(CACHE_STATIC);
-                cache.put(evt.request.url, netResponse.clone());
+        try {
+            if (evt.request.url.indexOf(reviewURL) > -1) {
+                console.log('[FETCH REVIEWS NET 1ST]');
+                const cache = await caches.open(CACHE_DYNAMIC);
+                const reviewResponse = await fetch(evt.request);
+                cache.put(evt.request.url, reviewResponse.clone());
+                return reviewResponse;
+            } else {
+                // get form cache first
+                const cachedResponse = await caches.match(evt.request);
+                if (cachedResponse) {
+                    // respond with the value in the cache
+                    // cachedResponse.headers.set('Cache-control', 'max-age=3600');
+                    return cachedResponse;
+                }
+                // response not in cache, then respond with network
+                const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
+
+                // add fetched response to cache
+                // const request = evt.request;
+                // const url = new URL(request.url);
+                
+                if (evt.request.url.match(location.origin)) {
+                    let cache = await caches.open(CACHE_STATIC);
+                    cache.put(evt.request.url, netResponse.clone());
+                    return netResponse;
+                } 
+                else {
+                    let cache = await caches.open(CACHE_DYNAMIC);
+                    cache.put(evt.request.url, netResponse.clone());
                 return netResponse;
-            } 
-            else {
-                let cache = await caches.open(CACHE_DYNAMIC);
-                cache.put(evt.request.url, netResponse.clone());
-            return netResponse;
+                }
             }
 
         } catch (error) {
@@ -128,6 +138,47 @@ self.addEventListener('fetch', evt => {
 
     evt.respondWith(getCustomResponsePromise());
 });
+
+
+// self.addEventListener('fetch', evt => {
+//     // working code
+//     const getCustomResponsePromise = async () => {
+//         try {
+//             // get form cache first
+//             const cachedResponse = await caches.match(evt.request);
+//             if (cachedResponse) {
+//                 // respond with the value in the cache
+//                 // cachedResponse.headers.set('Cache-control', 'max-age=3600');
+//                 return cachedResponse;
+//             }
+//             // response not in cache, then respond with network
+//             const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
+
+//             // add fetched response to cache
+//             // const request = evt.request;
+//             // const url = new URL(request.url);
+            
+//             if (evt.request.url.match(location.origin)) {
+//                 let cache = await caches.open(CACHE_STATIC);
+//                 cache.put(evt.request.url, netResponse.clone());
+//                 return netResponse;
+//             } 
+//             else {
+//                 let cache = await caches.open(CACHE_DYNAMIC);
+//                 cache.put(evt.request.url, netResponse.clone());
+//             return netResponse;
+//             }
+
+//         } catch (error) {
+//             // return falback page
+//             console.log(`ERROR: ${error}`);
+//             const cache = await caches.open(CACHE_STATIC)
+//             return cache.match('/offline.html');
+//         }
+//     };
+
+//     evt.respondWith(getCustomResponsePromise());
+// });
 
 self.addEventListener('sync', event => {
     if (event.tag === 'sync-reviews') {
@@ -144,14 +195,14 @@ self.addEventListener('sync', event => {
     }
 
     if (event.tag === 'sync-favorite') {
-        console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');        
-        // event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
-        //     .then( () => {
-        //         console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');
-        //     })
-        //     .catch(error => {
-        //         console.log('Error Synching to Database Server', error);
-        //     })
-        // );
+        console.log('[SYNCing TO BACKEND...  to Database Server]');        
+        event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
+            .then( () => {
+                console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');
+            })
+            .catch(error => {
+                console.log('Error Synching to Database Server', error);
+            })
+        );
     }
 });

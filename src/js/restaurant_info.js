@@ -30,7 +30,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// form data
+// handle review form
 
 const requiredMessage = document.querySelector('#required-message');
 requiredMessage.setAttribute('style', 'visibility: hidden');
@@ -46,13 +46,14 @@ form.addEventListener('submit', function(event) {
 
   const review = {
     id: new Date().toISOString(),
+    date: new Date().toLocaleDateString(),
     name: name.value,
     rating: rating.value,
     comments: comments.value,
     restaurant_id: self.restaurant.id,
   };
 
-  function registerSync(sw) {
+  function registerSync(sw, reviews) {
     return sw.sync.register('sync-reviews')
     .then(() => {
       // clear the form data
@@ -62,7 +63,8 @@ form.addEventListener('submit', function(event) {
       comments.value = '';
 
       // refresh restaurant UI self.restaurant.id
-      // DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
+      // DBHelper.fetchRestaurantReviews(self.restaurant.id, fillReviewsHTML)
+      fillReviewsHTML(reviews)
     })
     .catch(err => console.log('[INDEXEDDB] saving posts failed!', err))
   }
@@ -82,7 +84,10 @@ form.addEventListener('submit', function(event) {
         requiredMessage.setAttribute('style', 'visibility: visible');
         return;
       }
-      DBHelper.saveToSyncStore('review', review, registerSync(sw))
+      // DBHelper.saveToSyncStore('review', review, registerSync(sw))
+      DBHelper.saveToSyncStore('review', review, reviews => {
+        registerSync(sw, reviews);
+      })
        
     })
   } else {
@@ -167,7 +172,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  // DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
+  DBHelper.fetchRestaurantReviews(restaurant.id, fillReviewsHTML)
   // fillReviewsHTML();
 }
 
