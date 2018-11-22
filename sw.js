@@ -19,7 +19,6 @@ const appAssets = [
     '/src/js/dbhelper.js',
     '/src/js/idb.min.js',
     '/src/js/main.js',
-    '/src/js/main.min.js',
     '/src/js/restaurant_info.js',
     '/src/img/offline.jpg',
     '/src/img/dest/webp/1-md_1x.webp',
@@ -33,7 +32,7 @@ const appAssets = [
     '/src/img/dest/webp/9-md_1x.webp',
     '/src/img/dest/webp/10-md_1x.webp',
     '/src/img/dest/webp/not-a-restaurant.webp',
-    '/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
+    '/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2',
 ];
     // 'https://fonts.googleapis.com/css?family=Roboto:400,500',
     // 'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
@@ -78,36 +77,16 @@ self.addEventListener('activate', e => {
                 return Promise.all(keys.map( key => {
                     // if ( (key !== CACHE_STATIC || key !== CACHE_DYNAMIC) && (key.match('RestoReviewsStatic_') || key.match('RestoReviewsDynamic_'))) {                    
                     if (key !== CACHE_STATIC && key !== CACHE_DYNAMIC) {
-                        console.log('[DELETE CACHE KEY..] old keys');
+                        // console.log('[DELETE CACHE KEY..] old keys');
                         return caches.delete(key);
                     }
                 }))
             })
             .then(() => {
-                console.log('[ServiceWorker] Claiming clients for version');
+                // console.log('[ServiceWorker] Claiming clients for version');
                 return self.clients.claim();
             })
     );
-    // e.waitUntil(cleaned);
-    // return self.clients.claim();
-
-    // from https://serviceworke.rs/immediate-claim_service-worker_doc.html
-
-    // event.waitUntil(
-    //     caches.keys().then(function(cacheNames) {
-    //         return Promise.all(
-    //           cacheNames.map(function(cacheName) {
-    //             if (cacheName !== version) {
-    //               console.log('[ServiceWorker] Deleting old cache:', cacheName);
-    //               return caches.delete(cacheName);
-    //             }
-    //           })
-    //         );
-    //       }).then(function() {
-    //         console.log('[ServiceWorker] Claiming clients for version', version);
-    //         return self.clients.claim();
-    //     })
-    // );
 });
 
 self.addEventListener('fetch', evt => {
@@ -131,16 +110,9 @@ self.addEventListener('fetch', evt => {
                 // get form cache first
                 const cachedResponse = await caches.match(evt.request);
                 if (cachedResponse) {
-                    // respond with the value in the cache
-                    // cachedResponse.headers.set('Cache-control', 'max-age=3600');
                     return cachedResponse;
                 }
-                // response not in cache, then respond with network
-                const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
-
-                // add fetched response to cache
-                // const request = evt.request;
-                // const url = new URL(request.url);
+                const netResponse = await fetch(evt.request);
                 
                 if (evt.request.url.match(location.origin)) {
                     let cache = await caches.open(CACHE_STATIC);
@@ -169,47 +141,6 @@ self.addEventListener('fetch', evt => {
     evt.respondWith(getCustomResponsePromise());
 });
 
-
-// self.addEventListener('fetch', evt => {
-//     // working code
-//     const getCustomResponsePromise = async () => {
-//         try {
-//             // get form cache first
-//             const cachedResponse = await caches.match(evt.request);
-//             if (cachedResponse) {
-//                 // respond with the value in the cache
-//                 // cachedResponse.headers.set('Cache-control', 'max-age=3600');
-//                 return cachedResponse;
-//             }
-//             // response not in cache, then respond with network
-//             const netResponse = await fetch(evt.request); // , {headers:{'Cache-control': 'max-age=3600'}}            
-
-//             // add fetched response to cache
-//             // const request = evt.request;
-//             // const url = new URL(request.url);
-            
-//             if (evt.request.url.match(location.origin)) {
-//                 let cache = await caches.open(CACHE_STATIC);
-//                 cache.put(evt.request.url, netResponse.clone());
-//                 return netResponse;
-//             } 
-//             else {
-//                 let cache = await caches.open(CACHE_DYNAMIC);
-//                 cache.put(evt.request.url, netResponse.clone());
-//             return netResponse;
-//             }
-
-//         } catch (error) {
-//             // return falback page
-//             console.log(`ERROR: ${error}`);
-//             const cache = await caches.open(CACHE_STATIC)
-//             return cache.match('/offline.html');
-//         }
-//     };
-
-//     evt.respondWith(getCustomResponsePromise());
-// });
-
 self.addEventListener('sync', event => {
     if (event.tag === 'sync-reviews') {
         // https://www.kollegorna.se/en/2017/06/service-worker-gotchas/
@@ -225,7 +156,7 @@ self.addEventListener('sync', event => {
     }
 
     if (event.tag === 'sync-favorite') {
-        console.log('[SYNCing TO BACKEND...  to Database Server]');        
+        // console.log('[SYNCing TO BACKEND...  to Database Server]');        
         event.waitUntil(DBHelper.syncFavoriteToDatabaseServer()
             .then( () => {
                 console.log('[SYNC TO BACKEND... Favorite Successfully Synched to Database Server]');

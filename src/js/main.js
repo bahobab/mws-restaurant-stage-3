@@ -84,7 +84,6 @@ updateRestaurants = () => {
         console.error(error)
         } else {
         resetRestaurants(restaurants);
-        // DBHelper.fetchRestaurants(fillRestaurantsHTML);
         fillRestaurantsHTML()
         }
     });
@@ -104,7 +103,6 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => { // callback
     ul.role = 'list';
     restaurants.forEach(restaurant => {
         ul.append(createRestaurantHTML(restaurant))
-        // ul.append(DBHelper.fetchRestaurantById(restaurant.id, createRestaurantHTML));
     });
     addMarkersToMap();
 
@@ -119,14 +117,15 @@ handleFavorite = (restaurantList) => {
             return sw.sync.register('sync-favorite')
             .then(() => {
                 // fillRestaurantsHTML(restaurants);
-                console.log('[SYNC REG FAVORITE] success');
+                // console.log('[SYNC REG FAVORITE] success');
+                return;
             })
             .catch((err) => console.log('[SYNC FAVORITE REG] failed', err));
         }
 
         // handle setting of favorite restaurant
         if ('SyncManager' in window) {
-            console.log('[SW Ready in FAV...]', navigator.serviceWorker);
+            // console.log('[SW Ready in FAV...]', navigator.serviceWorker);
             navigator.serviceWorker.ready
             .then(sw => {
                 const favoriteCheckboxes = document.querySelectorAll(`#restaurants-list li input`);
@@ -157,6 +156,7 @@ handleFavorite = (restaurantList) => {
             })
         } else {
             // old browser
+            console.log('[SW NOT SUPPORTED...]');
         }
     });
 }

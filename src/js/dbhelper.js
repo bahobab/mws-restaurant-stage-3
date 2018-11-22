@@ -62,20 +62,8 @@ function getReviewsFromIndexedDB(storeName, restaurant_id) {
                                       .index('reviews');
 
                       const reviewIndex = await index.getAll(restaurant_id);
-                      console.log('[REQUEST]', reviewIndex);
+                      // console.log('[REQUEST]', reviewIndex);
                       return reviewIndex;
-
-                      // return reviewIndex.request.onsuccess = (e) => {
-                      //   console.log('[INDEX SUCCESS]', reviewIndex.request.result);
-                      //   return reviewIndex.request.result
-                        // saveToIndexedDB(SYNC_REVIEW_STORE, review);
-                        // console.log('[SYNSTORE SUCCESS]');
-                        // const reviews = reviewIndex.request.result;
-                        // reviews.push(review);
-                        // callback(reviews);
-
-                        // return reviewIndex.request.result;
-                      // }
     })
     .catch(err => console.log('[OPEN INDEXEDDB ERROR]', err));
 }
@@ -252,23 +240,10 @@ static async syncFavoriteToDatabaseServer() {
    * Fetch all reviews for a restaurants.
   */
 
-  // static async getFavorite(callback) {
-  //   const restaurants = await DBHelper.fetchRestaurants(callback);
-  //   // get the current favorite and store it to indexedDb sync store
-  //   const favRestaurant = restaurants.filter(restaurant => restaurant.is_favorite === true);
-  //   console.log('[CURENT FAV RESTO]', favRestaurant);
-
-  //   return callback(restaurants)
-  // }
-
-  /**
-   * Fetch all reviews for a restaurants.
-  */
-
   static async fetchRestaurantReviews(restaurantId, callback) {
     try {
       const response = await fetch(`${DBHelper.DATABASE_URL.get_reviews}?restaurant_id=${restaurantId}`);
-       console.log('[REVIEWS RESPONSE]', response);
+      //  console.log('[REVIEWS RESPONSE]', response);
       const json = await response.json();
       const reviews = json.map(review => {
         return {
@@ -284,7 +259,7 @@ static async syncFavoriteToDatabaseServer() {
     } catch (err) {
       console.log('[IN FETCH REVIEWS]', err)
       const reviews = await getReviewsFromIndexedDB(REVIEW_STORE, restaurantId);
-      console.log('[OFFLINE REVIEWS]', reviews);
+      // console.log('[OFFLINE REVIEWS]', reviews);
       
       callback(reviews);
     }
@@ -304,7 +279,7 @@ static async syncFavoriteToDatabaseServer() {
     } catch (err) {
       // console.log('>> Offline error:', err);
       const restaurants = await readFromIndexedDB(RESTAURANT_STORE, 'readonly');
-      console.log(`[Data from local IBD]: ${restaurants}`);
+      // console.log(`[Data from local IBD]: ${restaurants}`);
       callback(null, restaurants);
       const error = (`Request failed. Returned status of ${err}`);
       callback(error, null);

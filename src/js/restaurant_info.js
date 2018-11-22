@@ -26,7 +26,8 @@ if ('serviceWorker' in navigator) {
   // register sw
   navigator.serviceWorker.register('/sw.js')
   .then(registration => {
-    console.log('[Sw Registered in resto_info..]', navigator.serviceWorker.ready);
+    
+    // console.log('[Sw Registered in resto_info..]', navigator.serviceWorker.ready);
   });
 }
 
@@ -69,7 +70,7 @@ form.addEventListener('submit', function(event) {
   }
 
   if ('SyncManager' in window) {
-    console.log('[SW Ready...]', navigator.serviceWorker);
+    // console.log('[SW Ready...]', navigator.serviceWorker);
     // https://github.com/w3c/ServiceWorker/issues/1278
     // https://github.com/w3c/ServiceWorker/issues/1198
     // https://stackoverflow.com/questions/40161452/service-worker-controllerchange-never-fires
