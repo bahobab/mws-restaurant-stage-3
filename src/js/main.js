@@ -108,11 +108,11 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => { // callback
     });
     addMarkersToMap();
 
-    handleFavorite()
+    handleFavorite(ul)
 }
 
-handleFavorite = () => {
-    const restaurantList = document.getElementById('restaurants-list');
+handleFavorite = (restaurantList) => {
+    // const restaurantList = document.getElementById('restaurants-list');
     restaurantList.addEventListener('click', (event) => {
 
         function registerSync(sw, restaurants) {
@@ -131,10 +131,10 @@ handleFavorite = () => {
             .then(sw => {
                 const favoriteCheckboxes = document.querySelectorAll(`#restaurants-list li input`);
                 let favLi = document.getElementById(`resto-${currentFavId}`);
-                favLi.classList.remove('is-favorite');
-
-                for (let checkbox of favoriteCheckboxes) {
-                    if (checkbox.id === event.target.id) {
+                
+                for (let checkbox of favoriteCheckboxes) { // forEach?
+                    if (checkbox.id === event.target.id && checkbox.id !== currentFavId) {
+                        favLi.classList.remove('is-favorite');
                         restaurantId = Number(checkbox
                                                 .attributes
                                                 .restaurantid
@@ -165,7 +165,7 @@ createRestaurantHTML = (restaurant) => {
     // https://w3c.github.io/html-reference/input.radio.html setting radio button properties
     const li = document.createElement('li');
     li.role = "listitem";
-    li.role = "tab";
+    // li.role = "tab";
     li.id = `resto-${restaurant.id}`;
     const image = document.createElement('img');
     image.alt = `${restaurant.name} image`;
@@ -177,10 +177,11 @@ createRestaurantHTML = (restaurant) => {
     // name favorite wrapper
     const nameFavWrapper = document.createElement('div');
     nameFavWrapper.className = 'name-fav-wrapper';
-    nameFavWrapper.id = 'name-Fav-Wrapper';
+    nameFavWrapper.id = `name-Fav-Wrapper-${restaurant.id}`;
 
     const name = document.createElement('h3');
     name.innerHTML = restaurant.name;
+    name.role = 'restaurant name'
     nameFavWrapper.append(name);
 
     const favCheckbox = document.createElement('input');
@@ -199,9 +200,10 @@ createRestaurantHTML = (restaurant) => {
     
     favCheckbox.setAttribute('restaurantId', restaurant.id);
     favCheckbox.id = restaurant.id;
+    favCheckbox.setAttribute('aria-label', 'favorite checkbox');
 
     const myFavSpan = document.createElement('span');
-    myFavSpan.innerHTML = `<em>My Favorite?</em>`
+    myFavSpan.innerHTML = `<label aria-label="Set this as favorite?"><em>My Favorite?</em></label>`
     myFavSpan.append(favCheckbox);
     nameFavWrapper.append(myFavSpan);
     li.append(nameFavWrapper);
@@ -221,7 +223,6 @@ createRestaurantHTML = (restaurant) => {
     li.append(more)
     return li
 }
-
 
 addMarkersToMap = (restaurants = self.restaurants) => {
     restaurants.forEach(restaurant => {

@@ -50,7 +50,7 @@ form.addEventListener('submit', function(event) {
     name: name.value,
     rating: rating.value,
     comments: comments.value,
-    restaurant_id: self.restaurant.id,
+    restaurant_id: getParameterByName('id'),
   };
 
   function registerSync(sw, reviews) {
@@ -62,8 +62,7 @@ form.addEventListener('submit', function(event) {
       rating.value = '';
       comments.value = '';
 
-      // refresh restaurant UI self.restaurant.id
-      // DBHelper.fetchRestaurantReviews(self.restaurant.id, fillReviewsHTML)
+      // render restaurant reviews
       fillReviewsHTML(reviews)
     })
     .catch(err => console.log('[INDEXEDDB] saving posts failed!', err))
@@ -84,7 +83,6 @@ form.addEventListener('submit', function(event) {
         requiredMessage.setAttribute('style', 'visibility: visible');
         return;
       }
-      // DBHelper.saveToSyncStore('review', review, registerSync(sw))
       DBHelper.saveToSyncStore('review', review, reviews => {
         registerSync(sw, reviews);
       })
@@ -93,7 +91,7 @@ form.addEventListener('submit', function(event) {
   } else {
     //sendData(); // for older browsers
     console.log('old browser');
-    DBHelper.postReview(review); // not tested
+    // DBHelper.postReview(review); // not tested
   }
 });
 /**
@@ -138,7 +136,8 @@ fetchRestaurantFromURL = (callback) => {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
-        console.error(error);
+        console.log('[FETCH REST FROM URL]', error)
+        // console.error(error);
         return;
       }
       fillRestaurantHTML();

@@ -16,9 +16,7 @@
 <title>Restaurant Info</title>
 
 <script defer type='text/javascript' src='src/js/idb.min.js'></script>
-<!-- <script defer type="text/javascript" src="src/js/require.js"></script>  -->
 <script defer type='text/javascript' src='src/js/dbhelper.js'></script>
-<!-- <script defer type=text/javascript src='src/js/restaurant_info.min.js'></script> -->
 <script defer type='text/javascript' src='src/js/restaurant_info.js'></script>
 <style>
    
@@ -75,46 +73,45 @@
 <li><a href='/'>Home</a></li>
 </ul>
 </header>
-<main aria-roledescription="main content" id='maincontent' tabindex='1'>
+<main role="main content" id='maincontent' tabindex='0'>
 <section aria-hidden='true' id='map-container'>
 <div role='application' aria-hidden='true' id='map'></div>
 </section>
-<section aria-roledescription="restaurant information" id=restaurant-container tabindex=2>
-<h1 aria-roledescription="restaurant name" id='restaurant-name' tabindex='3'></h1>
+<section role="restaurant information" id=restaurant-container tabindex=2>
+<h1 role="restaurant name" id='restaurant-name' tabindex='0'></h1>
 <img id='restaurant-img' alt="restaurant name">
-<p aria-roledescription="restaurant cuisine type" id='restaurant-cuisine' tabindex='4'></p>
-<p aria-roledescription="restaurant address" id='restaurant-address' tabindex='5'></p>
-<table aria-roledescription="restaurant operation hours" id='restaurant-hours' tabindex='6'></table>
+<p role="restaurant cuisine type" id='restaurant-cuisine' tabindex='0'></p>
+<p role="restaurant address" id='restaurant-address' tabindex='0'></p>
+<table role="restaurant operation hours" id='restaurant-hours' tabindex='0'></table>
 </section>
-<section aria-roledescription="restaurant reviews section" id='reviews-container' tabindex='7'>
-<ul aria-roledescription="restaurant reviews list" id='reviews-list' tabindex='8'></ul>
+<section role="restaurant reviews section" id='reviews-container' tabindex='0'>
+<ul role="restaurant reviews list" id='reviews-list' tabindex='0'></ul>
 <div>
     <h4>Add Your Own Review</h4>
     <p aria-hidden='true' id="required-message">Please fill in required fields</p>
-    <form id="review-form" aria-roledescription="add review form">
+    <form id="review-form" role="add review form">
         <div class='review-input-group'>
-            <label class='review-label' for="reviewer" aria-labelledby="reviewer">Your Name</label>
+            <label class='review-label' for="reviewer" aria-label="reviwer" aria-labelledby="reviewer">Your Name</label>
             <input aria-required="true" name="reviewer_name" id="reviewer" type="text" placeholder="Type reviewer name - Required">
         </div>
         <div class='review-input-group'>
-            <label class='review-label' for="rating" aria-labelledby="rating">Your Rating</label>
+            <label class='review-label' for="rating" aria-label="rating" aria-labelledby="rating">Your Rating</label>
             <input aria-required="true" name="rating" id="rating" type="number" placeholder="Enter rating (number) - Required">
         </div>
-        <label class='review-label' for="comments" aria-labelledby="comments">Your Comments</label>
+        <label class='review-label' for="comments" aria-label="comments" aria-labelledby="comments">Your Comments</label>
         <div class='review-input-group'>
             <textarea aria-required="true" name="comments" id="comments" cols="30" rows="10" placeholder="Enter comments here - Required"></textarea>
         </div>
         <div class="submit">
-            <button type="submit" aria-roledescription="submit button"><span>Submit Review</span></button>
+            <button type="submit" aria-label="submit review" role="submit button"><span>Submit Review</span></button>
         </div>
     </form>
 </div>
 </section>
 </main>
 <footer id='footer'>
-Copyright (c) 2017 <a href='/''><strong>Restaurant Reviews</strong></a> All Rights Reserved.
+Copyright (c) 2018 <a href='/''><strong>Restaurant Reviews</strong></a> All Rights Reserved.
 </footer>
-<!-- <script defer type="text/javascript" src="js/myIDB.js"></script> -->
 <!-- <script defer type=text/javascript src=js/idb.min.js></script>
 <script defer async type=text/javascript src=js/dbhelper.min.js></script>
 <script defer async type=text/javascript src=js/restaurant_info.min.js></script> -->

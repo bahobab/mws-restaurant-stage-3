@@ -4,7 +4,8 @@
 @font-face {
   font-family: 'Roboto';
   font-display: swap;
-  src: local('KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2');
+  src: local('/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2');
+  /* , url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2'); */
   /* src: url(KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2'); */
 }
 

@@ -1,7 +1,8 @@
 // set sw version
-const CACHE_VER = 'VER_35';
+const CACHE_VER = 'VER_41';
 const CACHE_STATIC = `RestoReviewsStatic_${CACHE_VER}`;
 const CACHE_DYNAMIC = `RestoReviewsDynamic_${CACHE_VER}`;
+const CACHE_MAX_ITEMS = 10;
 
 // https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts
 self.importScripts('./src/js/idb.min.js', './src/js/dbhelper.js');
@@ -32,16 +33,37 @@ const appAssets = [
     '/src/img/dest/webp/9-md_1x.webp',
     '/src/img/dest/webp/10-md_1x.webp',
     '/src/img/dest/webp/not-a-restaurant.webp',
-    'https://fonts.googleapis.com/css?family=Roboto:400,500',
-    'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
+    '/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
 ];
-    
+    // 'https://fonts.googleapis.com/css?family=Roboto:400,500',
+    // 'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
+
+async function trimCache(cacheName) {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length > CACHE_MAX_ITEMS) {
+        cache.delete(keys[0])
+        .then(trimCache(cacheName));
+    }
+}
+
+function isInArray(string, array) {
+    var cachePath;
+    if (string.indexOf(self.origin) === 0) { // request targets domain where we serve the page from (i.e. NOT a CDN)
+    //   console.log('matched ', string);
+      cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
+    } else {
+      cachePath = string; // store the full request (for CDNs)
+    }
+    return array.indexOf(cachePath) > -1;
+}
+
 // install sw
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_STATIC)
             .then(cache => {
-                console.log('[SW INSTALL] Precaching Static');
+                // console.log('[SW INSTALL] Precaching Static');
                 return cache.addAll(appAssets);
             })
     );
@@ -89,6 +111,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', evt => {
+    // solution courtesy of Maximillian Schwartzmuller
     // strategy: network, then cache
     const getCustomResponsePromise = async () => {
         // const reviewURL = 'http://localhost:1337/reviews/?restaurant_id=';
@@ -96,11 +119,14 @@ self.addEventListener('fetch', evt => {
 
         try {
             if (evt.request.url.indexOf(reviewURL) > -1) {
-                console.log('[FETCH REVIEWS NET 1ST]');
+                // console.log('[FETCH REVIEWS NET 1ST]');
                 const cache = await caches.open(CACHE_DYNAMIC);
                 const reviewResponse = await fetch(evt.request);
+                trimCache(CACHE_DYNAMIC);
                 cache.put(evt.request.url, reviewResponse.clone());
                 return reviewResponse;
+            } else if (isInArray(evt.request.url, appAssets)) {
+                return caches.match(evt.request);
             } else {
                 // get form cache first
                 const cachedResponse = await caches.match(evt.request);
@@ -123,6 +149,7 @@ self.addEventListener('fetch', evt => {
                 } 
                 else {
                     let cache = await caches.open(CACHE_DYNAMIC);
+                    trimCache(CACHE_DYNAMIC);
                     cache.put(evt.request.url, netResponse.clone());
                 return netResponse;
                 }
@@ -133,6 +160,9 @@ self.addEventListener('fetch', evt => {
             console.log(`ERROR: ${error}`);
             const cache = await caches.open(CACHE_STATIC)
             return cache.match('/offline.html');
+            // application/octet-stream
+            // image/png
+            // image/svg+xml
         }
     };
 
@@ -206,3 +236,9 @@ self.addEventListener('sync', event => {
         );
     }
 });
+
+
+// ************** IMPROVEMENT RECOMMENDATIONS **************************
+
+// https://developers.google.com/web/tools/lighthouse/audits/cache-policy
+// https://css-tricks.com/snippets/javascript/loop-queryselectorall-matches/

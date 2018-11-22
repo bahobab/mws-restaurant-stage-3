@@ -4,9 +4,9 @@
 @font-face {
   font-family: 'Roboto';
   font-display: swap;
-  src: local('/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2');
+  src: local('/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2');
+  /* src: local('/src/css/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2'); */
 }
-  /* src: url(KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format('woff2'); */
 
 body,td,th,p{
 	font-family: 'Roboto', Arial, Helvetica, sans-serif;
@@ -118,11 +118,11 @@ header {
   align-items: center;
 }
 .filter-options h2 {
-  color: white;
+  color: black;
   font-size: 1rem;
   font-weight: normal;
   line-height: 1;
-  margin: 0 20px;
+  margin: 10px 20px 0 20px;
 }
 .filter-options select {
   background-color: white;
@@ -209,6 +209,10 @@ header {
       height: 50px;        
       justify-content: center;
       align-items: center;
+  }
+
+  .filter-options h2 {
+    margin-top: 0;
   }
 
   #restaurants-list li {
