@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/udacity/mws-restaurant-stage-1#readme",
   "devDependencies": {
-    "grunt": "^1.0.4",
+    "grunt": "^1.5.3",
     "grunt-cwebp": "^2.1.1",
     "grunt-responsive-images": "^1.10.1"
   },
